@@ -1,0 +1,26 @@
+app:
+  name: create-actas
+  templates:
+    directory: classpath:templates/
+    excel:
+      acta-visita: "excel/ACTA DE VISITA.xlsx"
+      solicitud-servicio: "excel/SOLICITUD DEL SERVICIO.xlsx"
+    word:
+      solicitud: "templates/word/ACTA DE DERECHOS Y OBLIGACIONES DEL CAPTURADO.doc"
+
+spring:
+  application:
+    name: create-actas
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
