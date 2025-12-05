@@ -4,7 +4,7 @@ import com.app.juridico.create_actas.aplication.DocumentProcessDelete;
 import com.app.juridico.create_actas.aplication.DocumentProcessGenerate;
 import com.app.juridico.create_actas.aplication.DocumentProcessGet;
 import com.app.juridico.create_actas.aplication.DocumentProcessSave;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.word.GeneratedDocument;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocumentsZip;
 import com.app.juridico.create_actas.infrastructure.dto.DocumentProcessDto;
 import com.app.juridico.create_actas.mappper.DocumentProcessMapper;
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/document-process")
 @AllArgsConstructor
 public class DocumentProcessController {
-    
+
     private final DocumentProcessGet documentProcessGet;
     private final DocumentProcessSave documentProcessSave;
     private final DocumentProcessDelete documentProcessDelete;
@@ -35,7 +35,7 @@ public class DocumentProcessController {
                 .stream()
                 .map(documentProcessMapper::toDto)
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(documentProcesses);
     }
 
@@ -47,17 +47,18 @@ public class DocumentProcessController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/generate-solicitud")
-    public ResponseEntity<Resource> generateSolicitudDocument(@PathVariable Long id) {
-        GeneratedDocument generatedDocument = documentProcessGenerate.generateSolicitudForDocumentProcess(id);
-        
-        ByteArrayResource resource = new ByteArrayResource(generatedDocument.content());
-        
+    @GetMapping("/{id}/generate-documents-zip")
+    public ResponseEntity<Resource> generateDocumentsZip(@PathVariable Long id) {
+        GeneratedDocumentsZip generatedZip = documentProcessGenerate.generateDocumentsZipForDocumentProcess(id);
+
+        ByteArrayResource resource = new ByteArrayResource(generatedZip.zipContent());
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, 
-                        "attachment; filename=\"" + generatedDocument.filename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + generatedZip.filename() + "\"")
+                .header("X-Included-Files", String.join(",", generatedZip.includedFiles()))
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(generatedDocument.content().length)
+                .contentLength(generatedZip.zipContent().length)
                 .body(resource);
     }
 

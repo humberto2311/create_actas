@@ -1,6 +1,8 @@
 package com.app.juridico.create_actas.infrastructure.adapter.secondary.word;
 
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocument;
 import com.app.juridico.create_actas.infrastructure.adapter.secondary.ResourceLoaderAdapter;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.SolicitudData;
 import lombok.AllArgsConstructor;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.usermodel.Range;
@@ -19,7 +21,7 @@ public class WordSolicitudGeneratorAdapter {
 
     public GeneratedDocument generateSolicitudWord(SolicitudData data) {
         Map<String, String> dataMap = Map.of(
-                "${NOMBRE_PERSONA}", data.name().toUpperCase() + " " + data.lastname().toUpperCase(),
+                "${NOMBRE_PERSONA}", data.names().toUpperCase() + " " + data.lastNames().toUpperCase(),
                 "${FECHA}", data.date().toString(),
                 "${NUMERO_CC}", data.identity()
         );
@@ -36,8 +38,8 @@ public class WordSolicitudGeneratorAdapter {
             document.write(bos);
 
             String filename = String.format("ACTA DE DERECHOS Y OBLIGACIONES DEL CAPTURADO %s %s.doc",
-                    data.name().replaceAll("\\s+", " "),
-                    data.lastname().replaceAll("\\s+", " ")).toUpperCase();
+                    data.names().replaceAll("\\s+", " "),
+                    data.lastNames().replaceAll("\\s+", " ")).toUpperCase();
 
             return new GeneratedDocument(bos.toByteArray(), filename);
 

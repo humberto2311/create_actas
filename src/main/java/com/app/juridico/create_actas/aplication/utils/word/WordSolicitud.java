@@ -1,9 +1,9 @@
 package com.app.juridico.create_actas.aplication.utils.word;
 
 import com.app.juridico.create_actas.domain.entities.DocumentProcess;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.word.GeneratedDocument;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocument;
 
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.word.SolicitudData;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.SolicitudData;
 import com.app.juridico.create_actas.infrastructure.adapter.secondary.word.WordSolicitudGeneratorAdapter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,9 +17,16 @@ public class WordSolicitud {
     public GeneratedDocument generateSolicitudFromDocumentProcess(DocumentProcess documentProcess) {
         SolicitudData solicitudData = new SolicitudData(
                 documentProcess.getDate(),
-                documentProcess.getIdentity(),
                 documentProcess.getNames(),
-                documentProcess.getLastNames()
+                documentProcess.getLastNames(),
+                documentProcess.getIdentity(),
+                documentProcess.getConduct(),
+                documentProcess.getRadicado(),
+                documentProcess.getFiscal(),
+                documentProcess.getTypeAudience(),
+                documentProcess.getFact(),
+                documentProcess.getJuzgado(),
+                documentProcess.isState()
         );
 
         return wordSolicitudGeneratorAdapter.generateSolicitudWord(solicitudData);

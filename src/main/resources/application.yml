@@ -3,7 +3,7 @@ app:
   templates:
     directory: classpath:templates/
     excel:
-      acta-visita: "excel/ACTA DE VISITA.xlsx"
+      acta-visita: "templates/excel/ACTA DE VISITA.xlsx"
       solicitud-servicio: "excel/SOLICITUD DEL SERVICIO.xlsx"
     word:
       solicitud: "templates/word/ACTA DE DERECHOS Y OBLIGACIONES DEL CAPTURADO.doc"

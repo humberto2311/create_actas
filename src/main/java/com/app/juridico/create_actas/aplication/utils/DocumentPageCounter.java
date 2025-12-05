@@ -79,7 +79,6 @@ public class DocumentPageCounter {
         for (XWPFParagraph paragraph : document.getParagraphs()) {
             String text = paragraph.getText();
             if (text != null && !text.trim().isEmpty()) {
-                // Estimación simple: contar líneas basadas en saltos de línea
                 totalLines += text.split("\n").length;
             }
         }
