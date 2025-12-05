@@ -6,8 +6,9 @@ import java.time.LocalDate;
 
 
 @Data
-public class DocumentProcess {
+public class DocumentProcessDto {
 
+    Long id;
     LocalDate date;
     String names;
     String lastNames;
@@ -18,7 +19,7 @@ public class DocumentProcess {
     String typeAudience;
     String fact; //hechos
     String juzgado;
-    String  state;// si o no
+    Boolean  state;// si o no
 
 
 

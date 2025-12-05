@@ -1,4 +1,4 @@
-package com.app.juridico.create_actas.domain.mappper;
+package com.app.juridico.create_actas.mappper;
 
 import com.app.juridico.create_actas.domain.entities.File;
 import com.app.juridico.create_actas.infrastructure.dto.FileDto;

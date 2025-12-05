@@ -4,7 +4,7 @@ import com.app.juridico.create_actas.aplication.FileDelete;
 
 import com.app.juridico.create_actas.aplication.FileSave;
 import com.app.juridico.create_actas.domain.entities.File;
-import com.app.juridico.create_actas.domain.mappper.FileMapper;
+import com.app.juridico.create_actas.mappper.FileMapper;
 import com.app.juridico.create_actas.infrastructure.dto.FileDto;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
