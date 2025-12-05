@@ -1,8 +1,8 @@
 package com.app.juridico.create_actas.infrastructure.adapter.secondary.excel;
 
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocument;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.utils.GeneratedDocument;
 import com.app.juridico.create_actas.infrastructure.adapter.secondary.ResourceLoaderAdapter;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.SolicitudData;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.utils.SolicitudData;
 import lombok.AllArgsConstructor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.Sheet;

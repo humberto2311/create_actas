@@ -1,4 +1,4 @@
-package com.app.juridico.create_actas.infrastructure.adapter.secondary;
+package com.app.juridico.create_actas.infrastructure.adapter.secondary.utils;
 
 
 import java.time.LocalDate;

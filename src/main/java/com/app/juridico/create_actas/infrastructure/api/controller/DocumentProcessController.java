@@ -4,7 +4,7 @@ import com.app.juridico.create_actas.aplication.DocumentProcessDelete;
 import com.app.juridico.create_actas.aplication.DocumentProcessGenerate;
 import com.app.juridico.create_actas.aplication.DocumentProcessGet;
 import com.app.juridico.create_actas.aplication.DocumentProcessSave;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocumentsZip;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.utils.GeneratedDocumentsZip;
 import com.app.juridico.create_actas.infrastructure.dto.DocumentProcessDto;
 import com.app.juridico.create_actas.mappper.DocumentProcessMapper;
 import lombok.AllArgsConstructor;

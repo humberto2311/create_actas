@@ -3,8 +3,8 @@ package com.app.juridico.create_actas.aplication;
 import com.app.juridico.create_actas.aplication.utils.DocumentZipGenerator;
 import com.app.juridico.create_actas.domain.entities.DocumentProcess;
 import com.app.juridico.create_actas.domain.services.DocumentProcessGetService;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedDocumentsZip;
-import com.app.juridico.create_actas.infrastructure.adapter.secondary.SolicitudData;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.utils.GeneratedDocumentsZip;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.utils.SolicitudData;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
