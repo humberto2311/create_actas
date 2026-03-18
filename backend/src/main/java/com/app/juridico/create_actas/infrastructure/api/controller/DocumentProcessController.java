@@ -74,4 +74,14 @@ public class DocumentProcessController {
         documentProcessDelete.deleteDocumentProcess(id);
         return ResponseEntity.noContent().build();
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<DocumentProcessDto> updateDocumentProcess(
+            @PathVariable Long id,
+            @RequestBody DocumentProcessDto dto) {
+        // Aseguramos que el ID del path sea el que se use
+        var entity = documentProcessMapper.toEntity(dto);
+        entity.setId(id);
+        var updated = documentProcessSave.saveDocumentProcess(entity);
+        return ResponseEntity.ok(documentProcessMapper.toDto(updated));
+    }
 }

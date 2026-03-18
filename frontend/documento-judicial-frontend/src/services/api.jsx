@@ -5,14 +5,14 @@ const API_URL = 'http://localhost:8080/api/document-process';
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json' // Asegura que el backend reciba JSON
+  }
 });
 
 export const documentService = {
   // Obtener todos los documentos
   getAll: async () => {
-    const response = await api.get('/');
+    const response = await api.get('');
     return response.data;
   },
 
@@ -24,7 +24,7 @@ export const documentService = {
 
   // Crear nuevo documento
   create: async (data) => {
-    const response = await api.post('/', data);
+    const response = await api.post('', data);
     return response.data;
   },
 
