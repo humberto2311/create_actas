@@ -1,5 +1,6 @@
 package com.app.juridico.create_actas.infrastructure.dto;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,12 +15,14 @@ public class DocumentProcessDto {
     String lastNames;
     String identity;
     String conduct;//crimen
-    Integer radicado;
+    String radicado;
     String fiscal;
     String typeAudience;
     String fact; //hechos
     String juzgado;
     Boolean  state;// si o no
+     String nacion;
+    LocalDate captura;
 
 
 

@@ -27,6 +27,7 @@ const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
 
   return (
     <Paper
+    component="div" 
       elevation={2}
       sx={{
         p: 2,
@@ -93,27 +94,61 @@ const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Ver detalles">
-            <IconButton size="small" color="info" onClick={() => onView(document)}>
-              <ViewIcon />
-            </IconButton>
-          </Tooltip>
           
-          <Tooltip title="Editar">
-            <IconButton size="small" color="primary" onClick={() => onEdit(document)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          
-          <Tooltip title="Generar documento">
-            <IconButton size="small" color="secondary" onClick={() => onGenerate(document.id)}>
-              <DescriptionIcon />
-            </IconButton>
-          </Tooltip>
-          
-          <Tooltip title="Eliminar">
-            <IconButton size="small" color="error" onClick={() => onDelete(document.id)}>
-              <DeleteIcon />
-            </IconButton>
+<IconButton 
+  size="small" 
+  color="info" 
+  type="button"
+  onClick={(e) => {
+    e.preventDefault(); // ¡PREVENIR COMPORTAMIENTO POR DEFECTO!
+    e.stopPropagation(); // Detener propagación
+    onView(document);
+  }}
+>
+  <ViewIcon />
+</IconButton>
+
+<Tooltip title="Editar">
+  <IconButton 
+    size="small" 
+    color="primary" 
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onEdit(document);
+    }}
+  >
+    <EditIcon />
+  </IconButton>
+</Tooltip>
+
+<Tooltip title="Generar documento">
+  <IconButton 
+    size="small" 
+    color="secondary" 
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onGenerate(document.id);
+    }}
+  >
+    <DescriptionIcon />
+  </IconButton>
+</Tooltip>
+
+<Tooltip title="Eliminar">
+  <IconButton 
+    size="small" 
+    color="error" 
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDelete(document.id);
+    }}
+  >
+    <DeleteIcon />
+  </IconButton>
+</Tooltip>
           </Tooltip>
         </Box>
       </Box>

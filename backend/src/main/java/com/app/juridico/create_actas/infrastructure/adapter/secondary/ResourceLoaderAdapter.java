@@ -21,35 +21,47 @@ public class ResourceLoaderAdapter {
     @Value("${app.templates.excel.acta-visita}")
     private String actaVisitaPath;
 
+    @Value("${app.templates.excel.solicitud-servicio}")
+    private String actaSoliPath;
+
     @Value("${app.templates.word.solicitud}")
     private String solicitudWordPath;
 
 
-    public InputStream loadExcelTemplateStream() {
-        InputStream stream = getClass().getClassLoader()
-                .getResourceAsStream(actaVisitaPath);
-
+    private InputStream loadResource(String path, String resourceName) {
+        InputStream stream = getClass().getClassLoader().getResourceAsStream(path);
         if (stream == null) {
-            throw new ResourceNotFoundException("Excel template not found at path: " + actaVisitaPath);
+            throw new ResourceNotFoundException(resourceName + " not found at path: " + path);
         }
         return stream;
     }
 
+    public InputStream loadExcelTemplateStream() {
+        return loadResource(actaVisitaPath, "Excel template");
+    }
+
+    public InputStream loadSolicitudExcelTemplateStream() {
+        return loadResource(actaSoliPath, "Excel solicitud template");
+    }
 
     public InputStream loadWordTemplateStream() {
-        InputStream stream = getClass().getClassLoader()
-                .getResourceAsStream(solicitudWordPath);
-
-        if (stream == null) {
-            throw new ResourceNotFoundException("Word template not found at path: " + solicitudWordPath);
-        }
-        return stream;
+        return loadResource(solicitudWordPath, "Word template");
     }
-    public Workbook createWorkbookFromTemplate() {
-        try (InputStream templateStream = loadExcelTemplateStream()) {
-            return new XSSFWorkbook(templateStream);
+
+
+    public Workbook createActaVisitaWorkbook() {
+        return createWorkbook(loadExcelTemplateStream());
+    }
+
+    public Workbook createSolicitudWorkbook() {
+        return createWorkbook(loadSolicitudExcelTemplateStream());
+    }
+
+    private Workbook createWorkbook(InputStream is) {
+        try (is) {
+            return new XSSFWorkbook(is);
         } catch (IOException e) {
-           throw new RuntimeException("Error reading or processing Excel template stream.", e);
+            throw new RuntimeException("Error al procesar Excel", e);
         }
     }
     public HWPFDocument createHWPFDocumentFromTemplate() {

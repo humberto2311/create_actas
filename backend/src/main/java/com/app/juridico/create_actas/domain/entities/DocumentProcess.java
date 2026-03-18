@@ -22,6 +22,9 @@ public class DocumentProcess {
 
     @Column(name = "date", nullable = false)
     private LocalDate date;
+
+    @Column(name = "captura", nullable = false)
+    private LocalDate captura;
     
     @Column(name = "names", length = 100, nullable = false)
     private String names;
@@ -29,16 +32,20 @@ public class DocumentProcess {
     @Column(name = "last_names", length = 100, nullable = false)
     private String lastNames;
     
-    @Column(name = "identity", length = 20, unique = true, nullable = false)
+    @Column(name = "identity", length = 20,  nullable = false)
     private String identity;
+
+    @Column(name = "nacion", length = 20, nullable = false)
+    private String nacion;
+
 
     // Delito o tipo de conducta penal
     @Column(name = "conduct", length = 255)
     private String conduct; 
     
     // Número de radicado o expediente
-    @Column(name = "radicado")
-    private Integer radicado;
+    @Column(name = "radicado",unique = true, length = 30) // Cambiado de Integer a String
+    private String radicado;
     
     // Nombre del Fiscal responsable
     @Column(name = "fiscal", length = 100)

@@ -45,11 +45,33 @@ create: async (data) => {
     await api.delete(`/${id}`);
   },
 
-  // Generar documento Word
-  generateDocument: async (id) => {
-    const response = await api.get(`/${id}/generate-solicitud`, {
-      responseType: 'blob'
-    });
-    return response.data;
+  
+  // Generar ZIP con ambos documentos
+  generateZip: async (id) => {
+    try {
+      const response = await api.get(`/${id}/generate-solicitud`, {
+        responseType: 'blob'
+      });
+      
+      // Obtener el nombre del archivo del header Content-Disposition si está disponible
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `documentos_${id}.zip`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      return {
+        blob: response.data,
+        filename: filename
+      };
+    } catch (error) {
+      console.error('Error al generar ZIP:', error);
+      throw error;
+    }
   }
+
 };

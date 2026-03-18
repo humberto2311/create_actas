@@ -4,6 +4,7 @@ import com.app.juridico.create_actas.aplication.DocumentProcessDelete;
 import com.app.juridico.create_actas.aplication.DocumentProcessGenerate;
 import com.app.juridico.create_actas.aplication.DocumentProcessGet;
 import com.app.juridico.create_actas.aplication.DocumentProcessSave;
+import com.app.juridico.create_actas.infrastructure.adapter.secondary.GeneratedZip;
 import com.app.juridico.create_actas.infrastructure.adapter.secondary.word.GeneratedDocument;
 import com.app.juridico.create_actas.infrastructure.dto.DocumentProcessDto;
 import com.app.juridico.create_actas.mappper.DocumentProcessMapper;
@@ -47,14 +48,16 @@ public class DocumentProcessController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+
+    // Mantén el endpoint original si todavía lo necesitas
     @GetMapping("/{id}/generate-solicitud")
     public ResponseEntity<Resource> generateSolicitudDocument(@PathVariable Long id) {
-        GeneratedDocument generatedDocument = documentProcessGenerate.generateSolicitudForDocumentProcess(id);
-        
+        GeneratedZip generatedDocument = documentProcessGenerate.generateBothDocumentsForDocumentProcess(id);
+
         ByteArrayResource resource = new ByteArrayResource(generatedDocument.content());
-        
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, 
+                .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + generatedDocument.filename() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .contentLength(generatedDocument.content().length)
