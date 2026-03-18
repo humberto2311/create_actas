@@ -41,9 +41,10 @@ create: async (data) => {
   },
 
   // Eliminar documento
-  delete: async (id) => {
-    await api.delete(`/${id}`);
-  },
+delete: async (id) => {
+  // Se agrega el prefijo /delete antes del ID
+  await api.delete(`/delete/${id}`);
+},
 
   
   // Generar ZIP con ambos documentos

@@ -72,7 +72,7 @@ public class DocumentProcessController {
         return ResponseEntity.ok(documentProcessMapper.toDto(saved));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteDocumentProcess(@PathVariable Long id) {
         documentProcessDelete.deleteDocumentProcess(id);
         return ResponseEntity.noContent().build();

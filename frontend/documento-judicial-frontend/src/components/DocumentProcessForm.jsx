@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Container,
   Paper,
@@ -48,6 +48,17 @@ const DocumentProcessForm = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [tabValue, setTabValue] = useState(0);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
+  
+  const formRef = useRef(null);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const {
     control,
@@ -61,7 +72,7 @@ const DocumentProcessForm = () => {
       names: '',
       lastNames: '',
       identity: '',
-     nacion: 'COLOMBIANA',
+      nacion: 'COLOMBIANA',
       date: new Date().toISOString().split('T')[0],
       captura: new Date().toISOString().split('T')[0],
       conduct: '',
@@ -74,100 +85,110 @@ const DocumentProcessForm = () => {
     }
   });
 
-  useEffect(() => {
-    loadDocuments();
-  }, []);
-
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
+    if (!isMounted.current) return;
+    
     setLoading(true);
     try {
       const data = await documentService.getAll();
-      setDocuments(data);
+      if (isMounted.current) {
+        setDocuments(data);
+      }
     } catch (error) {
-      toast.error('Error al cargar los documentos');
-      console.error('Error:', error);
+      if (isMounted.current) {
+        toast.error('Error al cargar los documentos');
+        console.error('Error:', error);
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      console.log('Enviando datos:', data);
+      
+      // Convertir fechas a formato ISO
+      const formattedData = {
+        ...data,
+        date: data.date instanceof Date ? data.date.toISOString().split('T')[0] : data.date,
+        captura: data.captura instanceof Date ? data.captura.toISOString().split('T')[0] : data.captura
+      };
+      
+      if (selectedId) {
+        await documentService.update(selectedId, formattedData);
+        toast.success('Documento actualizado exitosamente');
+      } else {
+        await documentService.create(formattedData);
+        toast.success('Documento guardado exitosamente');
+      }
+      
+      // Resetear el formulario ANTES de recargar
+      reset();
+      setSelectedId(null);
+      
+      // Recargar documentos
+      await loadDocuments();
+      
+      // Cambiar a la pestaña de "Todos"
+      setTabValue(0);
+      
+    } catch (error) {
+      console.error('Error detallado:', error);
+      
+      if (error.response?.status === 500) {
+        if (error.response?.data?.message?.includes('duplicate key')) {
+          toast.error('Ya existe un registro con esta identificación');
+        } else {
+          toast.error('Error interno del servidor. Por favor intente más tarde');
+        }
+      } else {
+        toast.error('Error al conectar con el servidor');
+      }
     } finally {
       setLoading(false);
     }
   };
 
- const onSubmit = async (data) => {
-  setLoading(true);
-  try {
-    console.log('Enviando datos:', data);
+  const handleDelete = async (id) => {
+    if (deleteInProgress) return;
     
-    let response;
-    if (selectedId) {
-      response = await documentService.update(selectedId, data);
-      toast.success('Documento actualizado exitosamente');
-    } else {
-      response = await documentService.create(data);
-      toast.success('Documento guardado exitosamente');
-    }
-    
-    // Solo resetear si la operación fue exitosa
-    reset();
-    setSelectedId(null);
-    
-    // Recargar la lista de documentos
-    await loadDocuments();
-    
-    // Cambiar a la pestaña de "Todos"
-    setTabValue(0);
-    
-  } catch (error) {
-    console.error('Error detallado:', error);
-    
-    // Mensajes de error más específicos
-    if (error.response?.status === 500) {
-      if (error.response?.data?.message?.includes('duplicate key')) {
-        toast.error('Ya existe un registro con esta identificación');
-      } else if (error.response?.data?.message?.includes('nacion')) {
-        toast.error('Error con la nacionalidad. Por favor contacte al administrador');
-      } else {
-        toast.error('Error interno del servidor. Por favor intente más tarde');
-      }
-    } else if (error.response?.status === 409) {
-      toast.error('Conflicto: Ya existe un registro con estos datos');
-    } else {
-      toast.error('Error al conectar con el servidor');
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
- const handleDelete = async (id, event) => {
-  // Prevenir cualquier comportamiento por defecto
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
-  
-  if (window.confirm('¿Está seguro de eliminar este documento?')) {
-    try {
-      setLoading(true); // Activar loading
-      await documentService.delete(id);
-      toast.success('Documento eliminado exitosamente');
-      await loadDocuments(); // Esperar a que se carguen los documentos
+    if (window.confirm('¿Está seguro de eliminar este documento?')) {
+      setDeleteInProgress(true);
       
-      if (selectedId === id) {
-        reset();
-        setSelectedId(null);
+      try {
+        await documentService.delete(id);
+        toast.success('Documento eliminado exitosamente');
+        
+        // Actualizar el estado local
+        setDocuments(prev => prev.filter(doc => doc.id !== id));
+        
+        if (selectedId === id) {
+          reset();
+          setSelectedId(null);
+        }
+      } catch (error) {
+        console.error('Error al eliminar:', error);
+        toast.error('Error al eliminar el documento');
+        // Recargar en caso de error
+        await loadDocuments();
+      } finally {
+        setDeleteInProgress(false);
       }
-    } catch (error) {
-      console.error('Error al eliminar:', error);
-      toast.error('Error al eliminar el documento');
-    } finally {
-      setLoading(false); // Desactivar loading
     }
-  }
-};
+  };
+
   const handleEdit = (doc) => {
+    // Resetear el formulario con los nuevos valores
+    reset(doc);
     setSelectedId(doc.id);
-    Object.keys(doc).forEach(key => {
-      setValue(key, doc[key]);
-    });
     setTabValue(0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -187,9 +208,12 @@ const DocumentProcessForm = () => {
       link.setAttribute('download', result.filename);
       document.body.appendChild(link);
       link.click();
-      link.remove();
       
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
       toast.success('Documentos generados exitosamente');
     } catch (error) {
       toast.error('Error al generar los documentos');
@@ -198,21 +222,7 @@ const DocumentProcessForm = () => {
   };
 
   const handleNewDocument = () => {
-    reset({
-      names: '',
-      lastNames: '',
-      identity: '',
-      nacion: '',
-      date: new Date().toISOString().split('T')[0],
-      captura: new Date().toISOString().split('T')[0],
-      conduct: '',
-      radicado: '',
-      fiscal: '',
-      typeAudience: '',
-      fact: '',
-      juzgado: '',
-      state: true
-    });
+    reset();
     setSelectedId(null);
     setTabValue(0);
   };
@@ -225,6 +235,19 @@ const DocumentProcessForm = () => {
 
   const activeDocuments = filteredDocuments.filter(doc => doc.state);
   const inactiveDocuments = filteredDocuments.filter(doc => !doc.state);
+
+  const getDocumentsToShow = () => {
+    switch (tabValue) {
+      case 1:
+        return activeDocuments;
+      case 2:
+        return inactiveDocuments;
+      default:
+        return filteredDocuments;
+    }
+  };
+
+  const documentsToShow = getDocumentsToShow();
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -246,18 +269,15 @@ const DocumentProcessForm = () => {
 
       <Grid container spacing={3}>
         {/* Formulario */}
-        <Grid item xs={12} md={5}>
+        <Grid size={{ xs: 12, md: 5 }}>
           <Paper elevation={3} sx={{ p: 3, borderRadius: 2, position: 'sticky', top: 20 }}>
             <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', mb: 3 }}>
               {selectedId ? '✏️ Editar Documento' : '📄 Nuevo Documento'}
             </Typography>
 
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={2}>
-                {/* Datos Personales */}
-              
-
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="names"
                     control={control}
@@ -275,7 +295,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="lastNames"
                     control={control}
@@ -293,7 +313,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="identity"
                     control={control}
@@ -311,7 +331,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="nacion"
                     control={control}
@@ -337,8 +357,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-              
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="date"
                     control={control}
@@ -358,7 +377,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="captura"
                     control={control}
@@ -378,9 +397,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-              
-
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="radicado"
                     control={control}
@@ -398,7 +415,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="fiscal"
                     control={control}
@@ -416,9 +433,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-               
-
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Controller
                     name="juzgado"
                     control={control}
@@ -436,7 +451,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Controller
                     name="conduct"
                     control={control}
@@ -454,7 +469,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Controller
                     name="fact"
                     control={control}
@@ -473,14 +488,13 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                {/* Estado */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" gutterBottom sx={{ mt: 1 }}>
                     Estado del Proceso
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Controller
                     name="state"
                     control={control}
@@ -499,8 +513,7 @@ const DocumentProcessForm = () => {
                   />
                 </Grid>
 
-                {/* Botones */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                     {selectedId && (
                       <Button
@@ -527,7 +540,7 @@ const DocumentProcessForm = () => {
         </Grid>
 
         {/* Lista de Documentos */}
-        <Grid item xs={12} md={7}>
+        <Grid size={{ xs: 12, md: 7 }}>
           <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
             <Box sx={{ mb: 3 }}>
               <TextField
@@ -566,35 +579,9 @@ const DocumentProcessForm = () => {
                 </Box>
               ) : (
                 <>
-                  {tabValue === 0 && filteredDocuments.map(doc => (
-                   <DocumentCard
-  key={doc.id}
-  document={doc}
-  onEdit={handleEdit}
-  onDelete={(id, event) => handleDelete(id, event)}
-  onGenerate={(id, event) => {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    handleGenerateDocument(id);
-  }}
-  onView={(doc, event) => handleView(doc, event)}
-/>
-                  ))}
-                  {tabValue === 1 && activeDocuments.map(doc => (
+                  {documentsToShow.map((doc) => (
                     <DocumentCard
-                      key={doc.id}
-                      document={doc}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onGenerate={handleGenerateDocument}
-                      onView={handleView}
-                    />
-                  ))}
-                  {tabValue === 2 && inactiveDocuments.map(doc => (
-                    <DocumentCard
-                      key={doc.id}
+                      key={`doc-${doc.id}`}
                       document={doc}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
@@ -603,7 +590,7 @@ const DocumentProcessForm = () => {
                     />
                   ))}
                   
-                  {filteredDocuments.length === 0 && (
+                  {documentsToShow.length === 0 && (
                     <Alert severity="info" sx={{ mt: 2 }}>
                       No hay documentos para mostrar
                     </Alert>
@@ -631,34 +618,34 @@ const DocumentProcessForm = () => {
         <DialogContent dividers>
           {selectedDocument && (
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="subtitle2" color="primary">Nombres</Typography>
                 <Typography variant="body1" gutterBottom>{selectedDocument.names} {selectedDocument.lastNames}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="subtitle2" color="primary">Identificación</Typography>
                 <Typography variant="body1" gutterBottom>{selectedDocument.identity}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="subtitle2" color="primary">Nacionalidad</Typography>
                 <Typography variant="body1" gutterBottom>
                   {nacionOptions.find(n => n.value === selectedDocument.nacion)?.label || selectedDocument.nacion}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="subtitle2" color="primary">Fecha del Proceso</Typography>
                 <Typography variant="body1" gutterBottom>
                   {selectedDocument.date && format(new Date(selectedDocument.date), 'PPP', { locale: es })}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={{ xs: 6 }}>
                 <Typography variant="subtitle2" color="primary">Fecha de Captura</Typography>
                 <Typography variant="body1" gutterBottom>
                   {selectedDocument.captura && format(new Date(selectedDocument.captura), 'PPP', { locale: es })}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
-                <Typography variant="subtitle2" color="primary"> Estado del Proceso</Typography>
+              <Grid size={{ xs: 6 }}>
+                <Typography variant="subtitle2" color="primary">Estado del Proceso</Typography>
                 <Chip 
                   label={selectedDocument.state ? 'Activo' : 'Inactivo'}
                   color={selectedDocument.state ? 'success' : 'error'}
@@ -666,19 +653,19 @@ const DocumentProcessForm = () => {
                 />
               </Grid>
               {selectedDocument.radicado && (
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="subtitle2" color="primary">Radicado</Typography>
                   <Typography variant="body1" gutterBottom>{selectedDocument.radicado}</Typography>
                 </Grid>
               )}
               {selectedDocument.fiscal && (
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="subtitle2" color="primary">Fiscal</Typography>
                   <Typography variant="body1" gutterBottom>{selectedDocument.fiscal}</Typography>
                 </Grid>
               )}
               {selectedDocument.typeAudience && (
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="subtitle2" color="primary">Tipo de Audiencia</Typography>
                   <Typography variant="body1" gutterBottom>
                     {audienceTypes.find(t => t.value === selectedDocument.typeAudience)?.label || selectedDocument.typeAudience}
@@ -686,19 +673,19 @@ const DocumentProcessForm = () => {
                 </Grid>
               )}
               {selectedDocument.juzgado && (
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <Typography variant="subtitle2" color="primary">Juzgado</Typography>
                   <Typography variant="body1" gutterBottom>{selectedDocument.juzgado}</Typography>
                 </Grid>
               )}
               {selectedDocument.conduct && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Conducta</Typography>
                   <Typography variant="body1" gutterBottom>{selectedDocument.conduct}</Typography>
                 </Grid>
               )}
               {selectedDocument.fact && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Hechos</Typography>
                   <Typography variant="body1" gutterBottom>{selectedDocument.fact}</Typography>
                 </Grid>

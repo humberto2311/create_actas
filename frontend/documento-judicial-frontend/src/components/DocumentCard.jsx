@@ -25,9 +25,28 @@ const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
     return state ? 'Activo' : 'Inactivo';
   };
 
+  const handleViewClick = (e) => {
+    e?.preventDefault();
+    onView(document);
+  };
+
+  const handleEditClick = (e) => {
+    e?.preventDefault();
+    onEdit(document);
+  };
+
+  const handleGenerateClick = (e) => {
+    e?.preventDefault();
+    onGenerate(document.id);
+  };
+
+  const handleDeleteClick = (e) => {
+    e?.preventDefault();
+    onDelete(document.id);
+  };
+
   return (
     <Paper
-    component="div" 
       elevation={2}
       sx={{
         p: 2,
@@ -94,61 +113,43 @@ const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Ver detalles">
-          
-<IconButton 
-  size="small" 
-  color="info" 
-  type="button"
-  onClick={(e) => {
-    e.preventDefault(); // ¡PREVENIR COMPORTAMIENTO POR DEFECTO!
-    e.stopPropagation(); // Detener propagación
-    onView(document);
-  }}
->
-  <ViewIcon />
-</IconButton>
+            <IconButton 
+              size="small" 
+              color="info" 
+              onClick={handleViewClick}
+            >
+              <ViewIcon />
+            </IconButton>
+          </Tooltip>
 
-<Tooltip title="Editar">
-  <IconButton 
-    size="small" 
-    color="primary" 
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onEdit(document);
-    }}
-  >
-    <EditIcon />
-  </IconButton>
-</Tooltip>
+          <Tooltip title="Editar">
+            <IconButton 
+              size="small" 
+              color="primary" 
+              onClick={handleEditClick}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
 
-<Tooltip title="Generar documento">
-  <IconButton 
-    size="small" 
-    color="secondary" 
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onGenerate(document.id);
-    }}
-  >
-    <DescriptionIcon />
-  </IconButton>
-</Tooltip>
+          <Tooltip title="Generar documento">
+            <IconButton 
+              size="small" 
+              color="secondary" 
+              onClick={handleGenerateClick}
+            >
+              <DescriptionIcon />
+            </IconButton>
+          </Tooltip>
 
-<Tooltip title="Eliminar">
-  <IconButton 
-    size="small" 
-    color="error" 
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      onDelete(document.id);
-    }}
-  >
-    <DeleteIcon />
-  </IconButton>
-</Tooltip>
+          <Tooltip title="Eliminar">
+            <IconButton 
+              size="small" 
+              color="error" 
+              onClick={handleDeleteClick}
+            >
+              <DeleteIcon />
+            </IconButton>
           </Tooltip>
         </Box>
       </Box>
