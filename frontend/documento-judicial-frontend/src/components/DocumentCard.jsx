@@ -5,7 +5,8 @@ import {
   Typography,
   IconButton,
   Chip,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -16,128 +17,59 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
-  const getStatusColor = (state) => {
-    return state ? 'success' : 'error';
-  };
-
-  const getStatusText = (state) => {
-    return state ? 'Activo' : 'Inactivo';
-  };
-
-  const handleViewClick = (e) => {
-    e?.preventDefault();
-    onView(document);
-  };
-
-  const handleEditClick = (e) => {
-    e?.preventDefault();
-    onEdit(document);
-  };
-
-  const handleGenerateClick = (e) => {
-    e?.preventDefault();
-    onGenerate(document.id);
-  };
-
-  const handleDeleteClick = (e) => {
-    e?.preventDefault();
-    onDelete(document.id);
-  };
-
+const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView, isDeleting }) => {
   return (
     <Paper
       elevation={2}
       sx={{
         p: 2,
         mb: 2,
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': {
-          transform: 'translateY(-2px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        },
-        position: 'relative',
         borderLeft: 6,
         borderLeftColor: document.state ? 'success.main' : 'error.main',
+        opacity: isDeleting ? 0.6 : 1,
+        transition: 'opacity 0.2s'
       }}
     >
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
             {document.names} {document.lastNames}
           </Typography>
           
           <Box sx={{ display: 'flex', gap: 2, mt: 1, flexWrap: 'wrap' }}>
-            <Chip
-              label={`ID: ${document.identity}`}
-              size="small"
-              variant="outlined"
-            />
+            <Chip label={`ID: ${document.identity}`} size="small" variant="outlined" />
             {document.radicado && (
-              <Chip
-                label={`Radicado: ${document.radicado}`}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
+              <Chip label={`Radicado: ${document.radicado}`} size="small" color="primary" variant="outlined" />
             )}
-            <Chip
-              label={getStatusText(document.state)}
+            <Chip 
+              label={document.state ? 'Activo' : 'Inactivo'}
               size="small"
-              color={getStatusColor(document.state)}
+              color={document.state ? 'success' : 'error'}
             />
           </Box>
 
-          <Box sx={{ mt: 1, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+          <Box sx={{ mt: 1 }}>
             <Typography variant="caption" color="textSecondary">
               📅 {format(new Date(document.date), 'PPP', { locale: es })}
             </Typography>
-            {document.typeAudience && (
-              <Typography variant="caption" color="textSecondary">
-                ⚖️ {document.typeAudience}
-              </Typography>
-            )}
-            {document.fiscal && (
-              <Typography variant="caption" color="textSecondary">
-                👤 Fiscal: {document.fiscal}
-              </Typography>
-            )}
           </Box>
-
-          {document.conduct && (
-            <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
-              <strong>Conducta:</strong> {document.conduct}
-            </Typography>
-          )}
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Ver detalles">
-            <IconButton 
-              size="small" 
-              color="info" 
-              onClick={handleViewClick}
-            >
+            <IconButton size="small" color="info" onClick={() => onView(document)}>
               <ViewIcon />
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Editar">
-            <IconButton 
-              size="small" 
-              color="primary" 
-              onClick={handleEditClick}
-            >
+            <IconButton size="small" color="primary" onClick={() => onEdit(document)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
 
           <Tooltip title="Generar documento">
-            <IconButton 
-              size="small" 
-              color="secondary" 
-              onClick={handleGenerateClick}
-            >
+            <IconButton size="small" color="secondary" onClick={() => onGenerate(document.id)}>
               <DescriptionIcon />
             </IconButton>
           </Tooltip>
@@ -146,9 +78,10 @@ const DocumentCard = ({ document, onEdit, onDelete, onGenerate, onView }) => {
             <IconButton 
               size="small" 
               color="error" 
-              onClick={handleDeleteClick}
+              onClick={() => onDelete(document.id)}
+              disabled={isDeleting}
             >
-              <DeleteIcon />
+              {isDeleting ? <CircularProgress size={20} /> : <DeleteIcon />}
             </IconButton>
           </Tooltip>
         </Box>
