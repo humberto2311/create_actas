@@ -101,8 +101,11 @@ const DocumentProcessForm = () => {
       setSelectedId(null);
       loadDocuments();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Error al guardar el documento');
-    } finally {
+    if (errorMessage.includes("duplicate key")) {
+      toast.error('Error: Ya existe un registro con esta Identificación.');
+    } else {
+      toast.error('Error al guardar el documento');
+    }} finally {
       setLoading(false);
     }
   };

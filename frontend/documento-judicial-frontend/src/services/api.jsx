@@ -22,11 +22,17 @@ export const documentService = {
     return response.data;
   },
 
-  // Crear nuevo documento
-  create: async (data) => {
+ // En api.jsx
+create: async (data) => {
+  try {
+    console.log('Enviando datos:', data); // Para debug
     const response = await api.post('', data);
     return response.data;
-  },
+  } catch (error) {
+    console.error('Error completo:', error.response?.data); // Ver el error del backend
+    throw error;
+  }
+},
 
   // Actualizar documento (asumiendo que existe endpoint PUT)
   update: async (id, data) => {
